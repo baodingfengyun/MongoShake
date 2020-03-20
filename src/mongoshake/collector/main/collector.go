@@ -91,7 +91,10 @@ func startup() {
 
 	// initialize http api
 	utils.InitHttpApi(conf.Options.HTTPListenPort)
+
+	// 创建一个复制监督者角色[对象]
 	coordinator := &collector.ReplicationCoordinator{
+		// 复制的源MongoDB地址[支持副本集,分片]配置
 		Sources: make([]*utils.MongoSource, len(conf.Options.MongoUrls)),
 	}
 
@@ -99,6 +102,7 @@ func startup() {
 		return &conf.Options
 	})
 
+	// 遍历设置地址信息,设置其Sources字段
 	for i, src := range conf.Options.MongoUrls {
 		coordinator.Sources[i] = new(utils.MongoSource)
 		coordinator.Sources[i].URL = src
@@ -107,7 +111,7 @@ func startup() {
 		}
 	}
 
-	// start mongodb replication
+	// start mongodb replication, 调用其方法
 	if err := coordinator.Run(); err != nil {
 		// initial or connection established failed
 		crash(fmt.Sprintf("Oplog Tailer initialize failed: %v", err), -6)
